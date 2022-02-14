@@ -1,3 +1,6 @@
+<?php
+include("util/conexion.php");
+?>
 <!DOCTYPE html>
 <html>
 <head>

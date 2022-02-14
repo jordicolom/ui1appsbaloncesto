@@ -1,29 +1,54 @@
-<script>
-$( document ).ready(function() {
-    $('#myModal').on('shown.bs.modal', function () {
-        $('#myInput').trigger('focus')
-    });
-}
-</script>
+
 <?php
-    $arrayPartidos = array();
+    require("clases/Partido.php");
 
     if(isset($_POST['idPartido'])){
         $idPartido = $_POST['idPartido'];
-        $localPartido = $_POST['localPartido'];
-        $visitantePartido = $_POST['visitantePartido'];
-        $fechaPartido = $_POST['fechaPartido'];
-        $resultadoPartido = $_POST['resultadoLocalPartido'] . " - " . $_POST['resultadoVisitantePartido'];
-        $arrayJugadores[] =array("idPartido" => $idPartido, "localPartido" => $localPartido, "visitantePartido" => $visitantePartido,
-        "fechaPartido" => $fechaPartido, "resultadoPartido"=>$resultadoPartido);
-        if($idJugador !=""){
-            //editar jugador
+        $localPartido = $_POST['equipoLocal'];
+        $visitantePartido = $_POST['equipoVisitante'];
+        $fechaPartido = $_POST['fecha'];
+        $resultadoLocal = $_POST['resultadoLocal'];
+        $resultadoVisitante = $_POST['resultadoVisitante'];
+
+        if($_POST['idPartido'] > 0){
+
+            $sql = "SELECT * FROM Partidos WHERE id = ". $idPartido;
+            $partidoSql = $mysqli->query($sql);
+            $partidoTmp = $partidoSql->fetch_assoc();
+            if($partidoTmp){
+                $partido = new Partido($partidoTmp['id'], $localPartido, $visitantePartido,$fechaPartido, $resultadoLocal, $resultadoVisitante );
+                $sql = "UPDATE Partidos SET equipoLocal=" . $partido->getEquipoLocal() . ",equipoVisitante=" . $partido->getEquipoVisitante();
+                $sql .= ",fecha='" . $partido->getFecha() . "',puntosLocal=" .  $partido->getPuntosLocal() . ",puntosVisitante=" . $partido->getPuntosVisitante();
+                $sql .= " WHERE id=". $partido->getId();
+                $mysqli->query($sql);
+            }
         }else{
-            // nuevo jugador
-        }  
+                $partido = new Partido( $localPartido, $visitantePartido,$fechaPartido, $resultadoLocal, $resultadoVisitante );
+                $sql = "INSERT INTO Partidos(equipoLocal, equipoVisitante, fecha, puntosLocal, puntosVisitante)VALUES(";
+                $sql .= $partido->getEquipoLocal() . "," . $partido->getEquipoVisitante() . ",'" . $partido->getFecha() . "',";
+                $sql .= $partido->getPuntosLocal() . "," . $partido->getPuntosVisitante() . ")";
+                $mysqli->query($sql);
+        }
         
     }
+    $sql = "SELECT p.*,e.nombre AS nombreLocal, ee.nombre AS nombreVisitante ";
+    $sql .= "FROM Partidos p LEFT JOIN Equipos e ON(e.id = p.equipoLocal) LEFT JOIN Equipos ee ON(ee.id=p.equipoVisitante) ORDER BY fecha DESC";
+    $arrayPartidos = $mysqli->query($sql);
 ?>
+<script>
+$( document ).ready(function() {
+    $('#myModal').on('shown.bs.modal', function () {
+        $('#myInput').trigger('focus');
+    });
+});
+$(document).on("click", ".borrar", function () {
+     var idBorrar = $(this).data('id');
+     $(".modal-footer #idBorrar").val( idBorrar );
+});
+function form_submit() {
+    document.getElementById("del_form").submit();
+   } 
+</script>
 <h1>PARTIDOS</h1>
 <div class="container">
    <div class="row">
@@ -45,38 +70,41 @@ $( document ).ready(function() {
         </thead>
         <tbody>
         <?php
-            foreach ($arrayJugadores as $jugador):
+            while ($partido = $arrayPartidos->fetch_assoc()) :
         ?>
           <tr>
-            <th scope="row"><?php echo $jugador['localPartido'];?></th>
-            <td><?php echo $jugador['visitantePartido'];?></td>
-            <td><?php echo $jugador['fechaPartido'];?></td>
-            <td><?php echo $jugador['resultadoPartido'];?></td>
+            <td ><?php echo $partido['nombreLocal'];?></td  >
+            <td><?php echo $partido['nombreVisitante'];?></td>
+            <td><?php echo $partido['fecha'];?></td>
+            <td><?php echo $partido['puntosLocal'] . " - " . $partido['puntosVisitante'];?></td>
             <td>
-              <a href="?menu=partidosficha" class="btn btn-info" role="button">Ver Partido</a>
-                 <a href="?menu=partidosedit" class="btn btn-info" role="button">Editar Partido</a>
-                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#borrarpartido">Borrar Partido</button>
+              <a href="?menu=partidosficha&id=<?=$partido['id'];?>" class="btn btn-info" role="button">Ver Partido</a>
+                 <a href="?menu=partidosedit&id=<?=$partido['id'];?>" class="btn btn-info" role="button">Editar Partido</a>
+                <button type="button" class="btn btn-danger borrar" data-id="<?=$partido['id'];?>" data-toggle="modal" data-target="#borrarpartido">Borrar Partido</button>
             </td>
           </tr>
         <?php
-            endforeach;
+            endwhile;
         ?>
         <div class="modal fade" id="borrarpartido" tabindex="-1" role="dialog" aria-labelledby="borrarpartido" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="borraJugador">Borrar Partido</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    ¿Quieres borrar el partido?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary">Borrar</button>
-                </div>
+                 <form id="del_form" method="post" action="index.php?menu=partidosdel" >
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="borraJugador">Borrar Partido</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Quieres borrar el partido?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button onclick="form_submit()" type="button" class="btn btn-primary" data-dismiss="modal" onClick="">Borrar</button>
+                            <input type="hidden" name="idBorrar" id="idBorrar" value=""/>
+                    </div>
+                </form>
                 </div>
             </div>
         </div>

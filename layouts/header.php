@@ -7,13 +7,16 @@
         </button>
         <div class="collapse navbar-collapse">
 			<ul class="navbar-nav ml-auto">
-				<li class="nav-item active">
+                <li class="nav-item <?php if($_GET['menu'] == "equipos"){echo "active";}?>">
+					<a class="nav-link" href="?menu=equipos">Equipos</a>
+				</li>
+				<li class="nav-item  <?php if($_GET['menu'] == "jugadores"){echo "active";}?>">
 					<a class="nav-link" href="?menu=jugadores">Jugadores</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item <?php if($_GET['menu'] == "partidos"){echo "active";}?>">
 					<a class="nav-link" href="?menu=partidos">Partidos</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item <?php if($_GET['menu'] == "ficheros"){echo "active";}?>">
 					<a class="nav-link" href="?menu=ficheros">Ficheros</a>
 				</li>
 			</ul>

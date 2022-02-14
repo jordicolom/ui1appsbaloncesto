@@ -1,5 +1,17 @@
 <?php
 switch($_GET['menu']){
+     case 'equipos':
+        require_once('paginas/equipos/equipos.php');
+        break;
+     case 'equiposadd':
+        require_once('paginas/equipos/nuevo.php');
+        break;
+    case 'equiposedit':
+        require_once('paginas/equipos/editar.php');
+        break;
+    case 'equiposdel':
+        require_once('paginas/equipos/del.php');
+        break;
     case 'jugadores':
         require_once('paginas/jugadores/jugadores.php');
         break;
@@ -12,6 +24,9 @@ switch($_GET['menu']){
     case 'jugadoresficha':
         require_once('paginas/jugadores/ficha.php');
         break;
+    case 'jugadoresdel':
+        require_once('paginas/jugadores/del.php');
+        break;
     case 'partidos':
         require_once('paginas/partidos/partidos.php');
         break;
@@ -23,6 +38,9 @@ switch($_GET['menu']){
         break;
     case 'partidosficha':
         require_once('paginas/partidos/ficha.php');
+        break;
+     case 'partidosdel':
+        require_once('paginas/partidos/del.php');
         break;
     case 'ficheros':
         require_once('paginas/fichero/fichero.php');
